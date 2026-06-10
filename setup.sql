@@ -1,4 +1,3 @@
-
 CREATE DATABASE ragdb;
 
 \c ragdb
@@ -10,14 +9,13 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     filename    TEXT NOT NULL,          
     chunk_index INTEGER NOT NULL,      
     content     TEXT NOT NULL,         
-    embedding   vector(768)           
+    embedding   vector(768),
+    page_number INTEGER
 );
 
--- Index for fast similarity search (cosine distance) ---
 CREATE INDEX IF NOT EXISTS embedding_idx
 ON document_chunks
-USING ivfflat (embedding vector_cosine_ops) -- use cosine distance for similarity
-WITH (lists = 100); -- Adjust 'lists' based on your dataset size for better performance
-
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
 
 SELECT 'Database setup complete!' AS status;

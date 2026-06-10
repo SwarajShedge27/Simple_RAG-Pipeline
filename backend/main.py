@@ -7,13 +7,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from db import init_db
-from pdf_processor import extract_text_from_pdf, split_into_chunks
+from pdf_processor import extract_pages_from_pdf, split_pages_into_chunks
 from rag import store_chunks, answer_question
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """Called automatically by FastAPI when the server starts."""
     init_db()
     yield
 
@@ -31,15 +30,13 @@ UPLOAD_DIR = os.path.join(os.path.dirname(__file__), "..", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
-
 @app.get("/")
-def health_check():
+def root():
     return {"status": "ok", "message": "Simple RAG backend is running."}
 
 
 @app.post("/upload")
 def upload_pdf(file: UploadFile = File(...)):
-   
     if not file.filename.endswith(".pdf"):
         raise HTTPException(status_code=400, detail="Only PDF files are accepted.")
 
@@ -48,15 +45,15 @@ def upload_pdf(file: UploadFile = File(...)):
         shutil.copyfileobj(file.file, buffer)
 
     try:
-        raw_text = extract_text_from_pdf(save_path)
+        pages = extract_pages_from_pdf(save_path)
 
-        if not raw_text.strip():
+        if not pages:
             raise HTTPException(
                 status_code=400,
                 detail="Could not extract text from this PDF. It may be image-only (scanned)."
             )
 
-        chunks = split_into_chunks(raw_text, chunk_size=500, overlap=50)
+        chunks = split_pages_into_chunks(pages, chunk_size=500, overlap=50)
 
         num_stored = store_chunks(file.filename, chunks)
 
@@ -67,9 +64,7 @@ def upload_pdf(file: UploadFile = File(...)):
         }
 
     except Exception as e:
-        # Surface the error message to the frontend
         raise HTTPException(status_code=500, detail=str(e))
-
 
 
 class QuestionRequest(BaseModel):
@@ -78,7 +73,6 @@ class QuestionRequest(BaseModel):
 
 @app.post("/chat")
 def chat(request: QuestionRequest):
-   
     if not request.question.strip():
         raise HTTPException(status_code=400, detail="Question cannot be empty.")
 

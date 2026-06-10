@@ -17,10 +17,6 @@ st.divider()
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
-# ---------------------------------------------------------------------------
-# Render existing chat history
-# ---------------------------------------------------------------------------
-
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.write(message["content"])
@@ -55,10 +51,6 @@ if user_question:
 
         st.write(answer)
         st.session_state.messages.append({"role": "assistant", "content": answer})
-
-# ---------------------------------------------------------------------------
-# Sidebar
-# ---------------------------------------------------------------------------
 
 with st.sidebar:   
     st.markdown("### Tips")

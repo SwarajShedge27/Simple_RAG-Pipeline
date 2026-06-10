@@ -40,7 +40,7 @@ if uploaded_file is not None:
                 response = requests.post(
                     url=f"{BACKEND_URL}/upload",
                     files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
-                    timeout=900,   
+                    timeout=1000000,   
                 )
 
                 if response.status_code == 200:

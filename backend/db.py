@@ -16,7 +16,6 @@ def get_connection():
 
 
 def init_db():
-    # 1. Connect to the default 'postgres' database to check/create the target database
     config_default = DB_CONFIG.copy()
     config_default["dbname"] = "postgres"
 
@@ -25,7 +24,6 @@ def init_db():
         conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
         cur = conn.cursor()
 
-        # Check if database exists
         cur.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s;", (DB_CONFIG["dbname"],))
         exists = cur.fetchone()
         if not exists:
@@ -39,7 +37,6 @@ def init_db():
         print(f"ℹ️ Note: Could not verify/create database '{DB_CONFIG['dbname']}' automatically: {e}")
         print("Will try to connect directly. Ensure the database exists.")
 
-    # 2. Connect to the target database and build tables/indices
     conn = get_connection()
     cur = conn.cursor()
 
@@ -60,8 +57,13 @@ def init_db():
             filename    TEXT NOT NULL,
             chunk_index INTEGER NOT NULL,
             content     TEXT NOT NULL,
-            embedding   vector(768)   -- nomic-embed-text produces 768-dim vectors
+            embedding   vector(768),
+            page_number INTEGER
         );
+    """)
+
+    cur.execute("""
+        ALTER TABLE document_chunks ADD COLUMN IF NOT EXISTS page_number INTEGER;
     """)
 
     cur.execute("""
@@ -75,4 +77,3 @@ def init_db():
     cur.close()
     conn.close()
     print("✅ Database initialised successfully.")
-
