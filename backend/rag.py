@@ -1,15 +1,3 @@
-"""
-rag.py - The core RAG logic
-
-This file handles two main jobs:
-  1. store_chunks()  - After PDF processing, save chunks + embeddings to pgvector
-  2. answer_question() - At query time, find relevant chunks and ask the LLM
-
-RAG flow recap:
-  Upload  → extract text → chunk → embed each chunk → store in postgres
-  Query   → embed query  → similarity search → retrieve top chunks → LLM → answer
-"""
-
 import os
 import requests
 from db import get_connection
@@ -24,14 +12,12 @@ def store_chunks(filename: str, chunks: list[str]) -> int:
     conn = get_connection()
     cur = conn.cursor()
 
-    # Optional: remove old chunks for this file so re-uploads don't duplicate
     cur.execute("DELETE FROM document_chunks WHERE filename = %s", (filename,))
 
     for index, chunk_text in enumerate(chunks):
-        # Generate the embedding vector for this chunk
+
         embedding_vector = get_embedding(chunk_text)
 
-        # Convert the Python list to the string format pgvector expects: "[0.1, 0.2, ...]"
         embedding_str = "[" + ",".join(str(v) for v in embedding_vector) + "]"
 
         cur.execute(
