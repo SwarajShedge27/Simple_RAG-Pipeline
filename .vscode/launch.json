@@ -1,0 +1,42 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python: FastAPI Backend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "uvicorn",
+            "args": [
+                "main:app",
+                "--reload",
+                "--port",
+                "8000"
+            ],
+            "cwd": "${workspaceFolder}/backend",
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "Python: Streamlit Frontend",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "streamlit",
+            "args": [
+                "run",
+                "Home.py"
+            ],
+            "cwd": "${workspaceFolder}/frontend",
+            "python": "${workspaceFolder}/venv/Scripts/python.exe",
+            "console": "integratedTerminal"
+        }
+    ],
+    "compounds": [
+        {
+            "name": "Run Entire RAG App",
+            "configurations": [
+                "Python: FastAPI Backend",
+                "Python: Streamlit Frontend"
+            ]
+        }
+    ]
+}

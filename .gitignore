@@ -1,0 +1,24 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual Environment
+venv/
+.venv/
+env/
+ENV/
+
+# User Uploads
+uploads/*
+!uploads/.gitkeep
+
+# Local Environment Variables
+.env
+.env.*
+
+# OS-specific files
+Thumbs.db
+Desktop.ini
+.DS_Store

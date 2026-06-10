@@ -1,0 +1,20 @@
+# Backend dependencies
+
+# Web framework
+fastapi==0.111.0
+uvicorn[standard]==0.29.0
+
+# PDF text extraction
+PyPDF2==3.0.1
+
+# PostgreSQL driver
+psycopg2-binary==2.9.9
+
+# HTTP client (for calling Ollama)
+requests==2.31.0
+
+# Data validation (used by FastAPI)
+pydantic==2.7.1
+
+# For handling file uploads in FastAPI
+python-multipart==0.0.9

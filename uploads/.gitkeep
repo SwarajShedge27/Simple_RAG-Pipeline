@@ -1,0 +1,5 @@
+# uploads/
+
+Uploaded PDF files are saved here temporarily before processing.
+
+This folder is intentionally excluded from version control (.gitignore).
