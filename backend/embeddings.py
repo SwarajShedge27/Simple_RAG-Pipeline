@@ -1,21 +1,25 @@
 import os
-import requests
+from sentence_transformers import SentenceTransformer
 
-OLLAMA_BASE_URL = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434")
-EMBED_MODEL = os.getenv("EMBED_MODEL", "nomic-embed-text")
+_model = None
+
+def get_model():
+    global _model
+    if _model is None:
+        model_name = os.getenv("EMBED_MODEL", "BAAI/bge-base-en-v1.5")
+        _model = SentenceTransformer(model_name)
+    return _model
 
 
 def get_embedding(text: str) -> list[float]:
-   
-    url = f"{OLLAMA_BASE_URL}/api/embeddings"
+    model = get_model()
+    embedding = model.encode(text, normalize_embeddings=True)
+    return embedding.tolist()
 
-    payload = {
-        "model": EMBED_MODEL,
-        "prompt": text,
-    }
 
-    response = requests.post(url, json=payload, timeout=60)
-    response.raise_for_status()         
-
-    data = response.json()
-    return data["embedding"]             
+def get_embeddings(texts: list[str]) -> list[list[float]]:
+    if not texts:
+        return []
+    model = get_model()
+    embeddings = model.encode(texts, normalize_embeddings=True)
+    return embeddings.tolist()

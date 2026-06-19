@@ -18,3 +18,13 @@ pydantic==2.7.1
 
 # For handling file uploads in FastAPI
 python-multipart==0.0.9
+
+# Sentence embeddings
+sentence-transformers>=3.0.0
+llama-index-embeddings-huggingface>=0.2.0
+llama-index-core>=0.10.0
+
+# Environment variables
+python-dotenv>=1.0.0
+
+

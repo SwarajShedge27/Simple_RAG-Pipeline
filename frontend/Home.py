@@ -15,49 +15,51 @@ st.write("Upload any PDF and we'll extract its text, generate embeddings, and st
 
 st.divider()
 
-
-# File uploader
-
-
-uploaded_file = st.file_uploader(
-    label="Choose a PDF file",
+uploaded_files = st.file_uploader(
+    label="Choose PDF files",
     type=["pdf"],
-    help="Only text-based PDFs are supported (not scanned images).",
+    accept_multiple_files=True,  
+    help="Only text-based PDFs are supported.",
 )
 
-
-# "Create Embeddings" button
-
-
-if uploaded_file is not None:
-    st.success(f"File selected: **{uploaded_file.name}**")
+if uploaded_files:  
+    st.success(f"**{len(uploaded_files)} file(s)** selected.")
 
     if st.button("Create Embeddings", use_container_width=True):
-
-        with st.spinner("Processing PDF and generating embeddings... This may take a minute."):
+        with st.spinner("Processing PDFs and generating embeddings..."):
             try:
+                
+                files_payload = [
+                    ("files", (f.name, f.getvalue(), "application/pdf"))
+                    for f in uploaded_files
+                ]
                 
                 response = requests.post(
                     url=f"{BACKEND_URL}/upload",
-                    files={"file": (uploaded_file.name, uploaded_file.getvalue(), "application/pdf")},
-                    timeout=1000000,   
+                    files=files_payload,
+                    timeout=1200,  
                 )
 
                 if response.status_code == 200:
                     data = response.json()
-                    st.success(f"Done! Stored **{data['num_chunks']} chunks** from `{data['filename']}`.")
-                    st.info(" Head to the **Chat** page (sidebar) to ask questions about this document.")
-                else:
+                    st.success(f"**Batch processing complete!**")
                     
-                    error_detail = response.json().get("detail", "Unknown error")
-                    st.error(f"Error: {error_detail}")
+                    for res in data["results"]:
+                        if res["status"] == "success":
+                            st.write(f" `{res['filename']}`: Stored **{res['num_chunks']} chunks**")
+                        else:
+                            st.write(f" `{res['filename']}`: Error - {res['detail']}")
+                            
+                    st.info(" Head to the **Chat** page (sidebar) to ask questions about these documents.")
+                else:
+                    st.error(f"Error: {response.text}")
 
             except requests.exceptions.ConnectionError:
                 st.error("Cannot connect to the backend. Make sure FastAPI is running on port 8000.")
             except Exception as e:
                 st.error(f"Unexpected error: {e}")
 else:
-    st.info("Upload a PDF above to get started.")
+    st.info("Upload one or more PDFs above to get started.")
 
 
 with st.sidebar:
@@ -65,7 +67,7 @@ with st.sidebar:
     st.markdown("""
 1. Upload a PDF
 2. Text is extracted & split into chunks
-3. Each chunk is embedded with nomic-embed-text
+3. Each chunk is embedded with BAAI/bge-base-en-v1.5
 4. Embeddings stored in PostgreSQL / pgvector
 5. Go to Chat to ask questions!
     """)

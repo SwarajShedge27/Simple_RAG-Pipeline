@@ -1,7 +1,7 @@
 # Frontend dependencies
 
 # UI framework
-streamlit==1.35.0
+streamlit>=1.37.0
 
 # HTTP client (to call the FastAPI backend)
 requests==2.31.0

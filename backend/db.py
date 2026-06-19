@@ -1,6 +1,9 @@
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -27,15 +30,12 @@ def init_db():
         cur.execute("SELECT 1 FROM pg_catalog.pg_database WHERE datname = %s;", (DB_CONFIG["dbname"],))
         exists = cur.fetchone()
         if not exists:
-            print(f"Database '{DB_CONFIG['dbname']}' does not exist. Creating it...")
             cur.execute(f'CREATE DATABASE "{DB_CONFIG["dbname"]}";')
-            print(f"Database '{DB_CONFIG['dbname']}' created successfully.")
 
         cur.close()
         conn.close()
-    except Exception as e:
-        print(f"ℹ️ Note: Could not verify/create database '{DB_CONFIG['dbname']}' automatically: {e}")
-        print("Will try to connect directly. Ensure the database exists.")
+    except Exception:
+        pass
 
     conn = get_connection()
     cur = conn.cursor()
@@ -51,13 +51,30 @@ def init_db():
             f"Error details: {e}"
         ) from e
 
-    cur.execute("""
+    embed_model = os.getenv("EMBED_MODEL", "BAAI/bge-base-en-v1.5")
+    dimension = 1024 if "large" in embed_model.lower() else 768
+
+    try:
+        cur.execute("""
+            SELECT atttypmod 
+            FROM pg_attribute 
+            WHERE attrelid = 'document_chunks'::regclass AND attname = 'embedding';
+        """)
+        row = cur.fetchone()
+        if row and row[0] != dimension:
+            print(f"Dimension mismatch in DB: expected {dimension}, found {row[0]}. Recreating table...")
+            cur.execute("DROP TABLE IF EXISTS document_chunks CASCADE;")
+            conn.commit()
+    except Exception:
+        conn.rollback()
+
+    cur.execute(f"""
         CREATE TABLE IF NOT EXISTS document_chunks (
             id          SERIAL PRIMARY KEY,
             filename    TEXT NOT NULL,
             chunk_index INTEGER NOT NULL,
             content     TEXT NOT NULL,
-            embedding   vector(768),
+            embedding   vector({dimension}),
             page_number INTEGER
         );
     """)
@@ -66,14 +83,6 @@ def init_db():
         ALTER TABLE document_chunks ADD COLUMN IF NOT EXISTS page_number INTEGER;
     """)
 
-    cur.execute("""
-        CREATE INDEX IF NOT EXISTS embedding_idx
-        ON document_chunks
-        USING ivfflat (embedding vector_cosine_ops)
-        WITH (lists = 100);
-    """)
-
     conn.commit()
     cur.close()
     conn.close()
-    print("✅ Database initialised successfully.")

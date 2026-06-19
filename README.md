@@ -8,8 +8,8 @@ A beginner-friendly **Retrieval-Augmented Generation (RAG)** app built with:
 | Backend | FastAPI |
 | Database | PostgreSQL + pgvector |
 | PDF parsing | PyPDF2 |
-| Embeddings | Ollama (`nomic-embed-text`) |
-| LLM | Ollama (`llama3.2` or `llama3`) |
+| Embeddings | HuggingFace (`BAAI/bge-base-en-v1.5`) |
+| LLM | Ollama (`llama3.1:8b`) |
 
 ---
 
@@ -42,14 +42,14 @@ simple-rag/
 
 ### When you upload a PDF:
 1. The PDF text is extracted with **PyPDF2**
-2. The text is split into small **chunks** (e.g. 500 characters each, with 50-char overlap)
-3. Each chunk is sent to **Ollama's nomic-embed-text** model, which converts it into a list of 768 numbers (an *embedding vector*) that represents its meaning
+2. The text is split into small **chunks** (e.g. 500 characters/tokens each, with 50-char/token overlap)
+3. Each chunk is sent to the local HuggingFace **BAAI/bge-base-en-v1.5** model, which converts it into a list of 768 numbers (an *embedding vector*) that represents its meaning
 4. The chunk text + embedding are saved in **PostgreSQL using pgvector**
 
 ### When you ask a question:
 1. Your question is also converted to an embedding vector (same model)
 2. **pgvector** finds the stored chunks whose vectors are closest to your question's vector — these are the most *semantically relevant* chunks
-3. Those chunks are bundled into a context prompt and sent to **Ollama's llama3** LLM
+3. Those chunks are bundled into a context prompt and sent to **Ollama's llama3.1:8b** LLM
 4. The LLM reads the context and answers your question
 
 This is RAG in a nutshell: **Retrieve** relevant context → **Augment** the prompt with it → **Generate** an answer.
@@ -143,13 +143,12 @@ Start Ollama (it runs as a background service):
 ollama serve
 ```
 
-Pull the models we need:
+Pull the model we need (the embedding model `BAAI/bge-base-en-v1.5` is downloaded automatically by the Python backend):
 ```bash
-ollama pull nomic-embed-text    # embedding model  (~270 MB)
-ollama pull llama3.2            # LLM model        (~2.0 GB - default)
+ollama pull llama3.1:8b         # LLM model        (~4.7 GB - default)
 ```
 
-> 💡 You can use any other model (e.g. `llama3`, `mistral`, `phi3`). 
+> 💡 You can use any other model (e.g. `llama3.2`, `llama3`, `mistral`, `phi3`). 
 > Simply set the `LLM_MODEL` environment variable (or update the default in `backend/rag.py`) to match.
 
 ---
@@ -221,7 +220,7 @@ Visit http://localhost:8501 in your browser.
 | Database name | `backend/db.py` | `DB_NAME` | `ragdb` |
 | DB user | `backend/db.py` | `DB_USER` | `postgres` |
 | DB password | `backend/db.py` | `DB_PASSWORD` | `postgres` |
-| LLM model | `backend/rag.py` | `LLM_MODEL` | `llama3.2` |
+| LLM model | `backend/rag.py` | `LLM_MODEL` | `llama3.1:8b` |
 | Chunk size | `backend/main.py` | `chunk_size` | `500` |
 | Chunk overlap | `backend/main.py` | `overlap` | `50` |
 | Retrieved chunks | `backend/rag.py` | `top_k` | `5` |
@@ -239,7 +238,7 @@ You can also set DB settings as environment variables before starting the backen
 → Run `ollama serve` in a separate terminal.
 
 **"model not found" error**
-→ Run `ollama pull nomic-embed-text` and `ollama pull llama3`.
+→ Run `ollama pull llama3.1:8b`.
 
 **"operator does not exist: vector" (pgvector error)**
 → Make sure pgvector is installed AND you ran `CREATE EXTENSION vector` in the `ragdb` database.

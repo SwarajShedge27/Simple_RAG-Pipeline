@@ -1,0 +1,12 @@
+{
+  "total_questions": 40,
+  "faithfulness": 0.6548,
+  "answer_relevance": 0.7532,
+  "context_recall": 0.6905,
+  "answer_correctness": 0.6265,
+  "latency": {
+    "avg_sec": 33.755,
+    "min_sec": 22.757,
+    "max_sec": 73.918
+  }
+}

@@ -35,7 +35,7 @@ if user_question:
                 response = requests.post(
                     url=f"{BACKEND_URL}/chat",
                     json={"question": user_question},
-                    timeout=120,
+                    timeout=1200,
                 )
 
                 if response.status_code == 200:

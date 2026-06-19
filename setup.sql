@@ -13,9 +13,4 @@ CREATE TABLE IF NOT EXISTS document_chunks (
     page_number INTEGER
 );
 
-CREATE INDEX IF NOT EXISTS embedding_idx
-ON document_chunks
-USING ivfflat (embedding vector_cosine_ops)
-WITH (lists = 100);
-
 SELECT 'Database setup complete!' AS status;

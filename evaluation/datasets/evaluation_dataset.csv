@@ -1,0 +1,41 @@
+question,expected_answer,expected_keyword
+What is Machine Learning?,The science of programming computers to learn from data,Learning
+"What is the main benefit of using hierarchical clustering algorithm for grouping similar data, such as blog visitors?",Targeted content,Segmentation
+What challenges arise when training machine learning models on large datasets?,Limited hardware and memory resources,Hardware
+What is the main limitation of machine learning that requires a lot of training data?,Insufficient quantity of training data,Data
+What determines the choice of approach for machine learning algorithms?,The nature of the problem and the characteristics of the data.,characteristics
+What is the type of training experience that provides an individual board state and correct move?,Direct,Direct
+What does the notation 'ø' indicate in the context of a machine learning hypothesis?,no value is acceptable,none
+What is guaranteed by the FIND-S algorithm?,The most specific hypothesis within H that is consistent with positive training examples.,Guaranteed
+What happens if the target concept is not contained in the initial hypothesis space?,The algorithm cannot generalize to unobserved instances.,generalization
+What is the main goal of Exploratory Data Analysis (EDA)?,To understand and visualize data distribution and characteristics.,Data
+What is the purpose of imputing missing values in a dataset?,"To replace missing values with a suitable value, such as the mean or median",Imputation
+"What does the line `transformer = FunctionTransformer(np.log2, validate=True)` do?",Apply log-base 2 transformation to data,Logarithm
+What is the purpose of using GridSearch in machine learning?,to find optimal hyperparameters for a model,GridSearch
+What type of machine learning algorithm can be used for binary classification?,Logistic regression or support vector machines,classification
+What is the trade-off between precision and recall in machine learning?,"More precision reduces recall, while more recall reduces precision.",Trade Off
+What is plotted on the y-axis of an ROC curve?,True Positive Rate,Rate
+What is the purpose of using cross_val_predict from scikit-learn to classify digits?,To evaluate model performance on subgroups of data,Cross Validation
+What happens if the learning rate is too high?,The algorithm may diverge and end up with larger values,Diverge
+Why do batch gradient descent algorithms converge to the minimum whereas stochastic and mini-batch gradient descent algorithms continue to explore?,"Because batch gradient descent moves at a slower pace, but with a good learning schedule",Slower
+What is Elastic net regression used for?,Dealing with multicollinearity and overfitting,Regularization
+What is a decision tree in machine learning?,A decision tree is a type of supervised learning algorithm that uses a tree-like model to classify data or make predictions.,Classification
+What is entropy in Machine Learning?,a measure of unpredictability or impurity,impurity
+What method uses the average probabilities of classes to determine the final prediction?,Soft Voting,Average
+What does variance measure in machine learning?,The amount by which a model's performance changes when trained on different subsets of training data,Variability
+What is the primary goal of building multiple models in boosting?,to improve accuracy,accuracy
+What is the purpose of stacking multiple models together?,to improve overall performance,blending
+What are the assumptions of the Brute Force MAP learning algorithm?,"The training data is noise free, the target concept is contained in the hypothesis space, and there is no prior probability on hypotheses.",Assumptions
+What is the primary nature of Bayesian networks?,Probabilistic,Bayesian
+What is the primary goal of the EM algorithm?,To estimate missing values,Estimate
+What is the expected output of applying a Naïve Bayes Classifier to the given dataset?,Classification of species based on color and height,Bayesian
+What is concept learning in machine learning?,Concept learning involves the extraction of general rules or patterns from specific instances to make predictions on new, unseen data.,patterns
+What is the main purpose of cross validation?,The main purpose of cross validation is to prevent overfitting and provide a realistic estimate of the model's generalization performance on new, unseen data.,overfitting
+What are hyperparameters in a machine learning model?,Hyperparameters are the parameters that determine the behavior and performance of a machine learning model, which are set prior to training rather than learned during training.,behavior
+What does the letter H stand for in concept learning?,The letter H stands for the collection of all conceivable hypotheses that a learner could explore while determining the identity of the target concept.,hypotheses
+What is deductive learning?,Deductive learning is the process of getting new information from old information.,information
+What is inductive learning?,Inductive learning is the process of formulating a generalized notion based on prior experience.,experience
+Why is a machine learning approach better than traditional programming for a spam filter?,A machine learning approach automatically learns which words and phrases are good predictors of spam, making the program much shorter, easier to maintain, and more accurate.,automatically
+What is the target concept c in concept learning represented as mathematically?,The target concept c is represented as a boolean-valued function c: X -> {0, 1} defined over the set of instances X.,boolean
+What is the goal of hyperparameter optimization?,The process of finding the optimal values for the hyperparameters of a machine learning model to improve its performance.,optimal
+What happens in k-fold cross validation?,The data is divided into k subsets or folds, where the model is trained on k-1 folds and validated on the remaining fold, repeating the process k times so that each fold is used as a validation set once.,folds
