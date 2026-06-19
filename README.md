@@ -56,6 +56,51 @@ This is RAG in a nutshell: **Retrieve** relevant context → **Augment** the pro
 
 ---
 
+## 🧠 Advanced Features: Reranking & Multi-Query Expansion
+
+### 1. Two-Stage Retrieval (Reranking)
+To improve the accuracy of retrieved context, the application implements a **two-stage retrieval pipeline**:
+* **Stage 1 (Coarse Retrieval)**: Retrieves a larger candidate pool of documents from PostgreSQL via vector similarity search using `pgvector` distance matching (`db_limit = max(top_k * 3, 10)`).
+* **Stage 2 (Fine Re-ranking)**: Passes candidate text-query pairs to a specialized Cross-Encoder model (`BAAI/bge-reranker-base`) to score their relevance.
+* **Threshold Filtering**: Discards any retrieved chunks that fall below `RERANK_THRESHOLD` (default `0.35`). The top `rerank_top_n` scoring chunks are used as prompt context.
+
+### 2. Multi-Query Expansion
+To overcome variations in user phrasing, the backend translates the user query into multiple query variations using an LLM prompt. The vector database is searched using the embeddings of all generated queries, merging the retrieved candidates to improve retrieval coverage (recall).
+
+---
+
+## 🧪 Hyperparameter Tuning Suite
+
+Located in the [`evaluation/`](file:///c:/Users/Swaraj Shedge/Desktop/simple-rag/evaluation) directory, this subsystem automatically optimizes the critical configurations of the RAG pipeline.
+
+### 1. Optimization Goal
+Tuning utilizes the **Optuna** library to maximize a combined validation metric calculated using **Ragas**:
+
+```text
+                  Faithfulness + Answer Relevancy + Answer Correctness
+Combined Score = ------------------------------------------------------
+                                           3
+```
+
+* **Faithfulness**: Measures prompt adherence and lack of hallucinations (LLM-as-a-judge).
+* **Answer Relevancy**: Evaluates semantic alignment with the question.
+* **Answer Correctness**: Scores factual accuracy against ground truth datasets.
+
+### 2. Tuned Parameters Search Space
+* `chunk_size` (300 to 900)
+* `overlap` (30 to 90)
+* `temperature` (0.0 to 0.5)
+* `top_k` (3 to 10)
+* `use_rerank` (True/False)
+* `rerank_top_n` (1 to 5)
+
+To run the tuning script:
+```bash
+python evaluation/tune.py
+```
+
+---
+
 ## 🛠️ Prerequisites
 
 Make sure you have these installed before starting:
