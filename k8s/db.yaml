@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rag-db
+  labels:
+    app: rag-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rag-db
+  template:
+    metadata:
+      labels:
+        app: rag-db
+    spec:
+      containers:
+      - name: db
+        image: ankane/pgvector:latest
+        ports:
+        - containerPort: 5432
+        env:
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          value: "Password"
+        - name: POSTGRES_DB
+          value: "postgres"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rag-db
+  labels:
+    app: rag-db
+spec:
+  ports:
+  - port: 5432
+    targetPort: 5432
+  selector:
+    app: rag-db

@@ -22,3 +22,9 @@ uploads/*
 Thumbs.db
 Desktop.ini
 .DS_Store
+
+# Node / Next.js
+node_modules/
+.next/
+build/
+dist/
