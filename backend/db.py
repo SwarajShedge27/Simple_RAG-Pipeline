@@ -1,9 +1,13 @@
 import psycopg2
+from psycopg2 import pool
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 import os
+import logging
 from dotenv import load_dotenv
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
@@ -13,9 +17,31 @@ DB_CONFIG = {
     "password": os.getenv("DB_PASSWORD", "Password"),
 }
 
+_pool = None
+
+def init_pool():
+    global _pool
+    if _pool is None:
+        try:
+            logger.info("Initializing PostgreSQL connection pool...")
+            _pool = psycopg2.pool.SimpleConnectionPool(1, 10, **DB_CONFIG)
+            logger.info("PostgreSQL connection pool created successfully.")
+        except Exception as e:
+            logger.error(f"Failed to create connection pool: {e}", exc_info=True)
+            raise
 
 def get_connection():
-    return psycopg2.connect(**DB_CONFIG)
+    if _pool is None:
+        init_pool()
+    try:
+        return _pool.getconn()
+    except Exception as e:
+        logger.error(f"Failed to get connection from pool: {e}", exc_info=True)
+        raise
+
+def release_connection(conn):
+    if _pool is not None and conn is not None:
+        _pool.putconn(conn)
 
 
 def init_db():
@@ -42,16 +68,17 @@ def init_db():
 
     try:
         cur.execute("CREATE EXTENSION IF NOT EXISTS vector;")
+        conn.commit()
     except Exception as e:
         conn.rollback()
         cur.close()
-        conn.close()
+        release_connection(conn)
         raise RuntimeError(
             "Failed to enable 'vector' extension. Please ensure 'pgvector' is installed on your PostgreSQL server. "
             f"Error details: {e}"
         ) from e
 
-    embed_model = os.getenv("EMBED_MODEL", "BAAI/bge-base-en-v1.5")
+    embed_model = os.getenv("EMBED_MODEL", "nomic-embed-text")
     dimension = 1024 if "large" in embed_model.lower() else 768
 
     try:
@@ -85,4 +112,4 @@ def init_db():
 
     conn.commit()
     cur.close()
-    conn.close()
+    release_connection(conn)

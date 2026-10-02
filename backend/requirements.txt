@@ -1,23 +1,27 @@
 # Backend dependencies
 
 # Web framework
-fastapi==0.111.0
-uvicorn[standard]==0.29.0
+fastapi[standard]>=0.115.0
 
 # PDF text extraction
-PyPDF2==3.0.1
+PyPDF2>=3.0.1
+PyMuPDF
+prometheus-fastapi-instrumentator
+langgraph
+langchain
+kubernetes
 
 # PostgreSQL driver
-psycopg2-binary==2.9.9
+psycopg2-binary
 
 # HTTP client (for calling Ollama)
-requests==2.31.0
+requests>=2.31.0
 
 # Data validation (used by FastAPI)
-pydantic==2.7.1
+pydantic>=2.7.1
 
 # For handling file uploads in FastAPI
-python-multipart==0.0.9
+python-multipart>=0.0.9
 
 # Sentence embeddings
 sentence-transformers>=3.0.0
@@ -26,5 +30,3 @@ llama-index-core>=0.10.0
 
 # Environment variables
 python-dotenv>=1.0.0
-
-
