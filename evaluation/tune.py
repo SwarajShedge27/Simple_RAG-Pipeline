@@ -5,7 +5,6 @@ import csv
 import json
 import math
 import re
-import requests
 import optuna
 from dotenv import load_dotenv
 
@@ -16,7 +15,6 @@ sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "b
 
 from backend.rag import retrieve_relevant_chunks, answer_question, store_chunks
 from backend.pdf_processor import extract_pages_from_pdf, split_pages_into_chunks
-from langchain_openai import ChatOpenAI
 from langchain_ollama import ChatOllama
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 from langchain_core.output_parsers import PydanticOutputParser

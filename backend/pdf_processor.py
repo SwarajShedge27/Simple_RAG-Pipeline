@@ -3,23 +3,38 @@ import re
 from collections import Counter
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core import Document
+import logging
+
+logger = logging.getLogger(__name__)
 
 def extract_pages_from_pdf(file_path: str) -> list[dict]:
     pages = []
-    with open(file_path, "rb") as f:
-        reader = PyPDF2.PdfReader(f)
-        for page_num, page in enumerate(reader.pages):
-            page_text = page.extract_text()
+    logger.info(f"Extracting pages from PDF: {file_path}")
+    try:
+        with open(file_path, "rb") as f:
+            reader = PyPDF2.PdfReader(f)
+            num_pages = len(reader.pages)
+            logger.info(f"Found {num_pages} pages in {file_path}.")
+            for page_num, page in enumerate(reader.pages):
+                try:
+                    page_text = page.extract_text()
 
-            if page_text:
-                page_text = page_text.replace("\x00", "")
+                    if page_text:
+                        page_text = page_text.replace("\x00", "")
 
-            if page_text and page_text.strip():
-                lines = [line.strip() for line in page_text.split("\n") if line.strip()]
-                pages.append({
-                    "page_number": page_num + 1,
-                    "lines": lines
-                })
+                    if page_text and page_text.strip():
+                        lines = [line.strip() for line in page_text.split("\n") if line.strip()]
+                        pages.append({
+                            "page_number": page_num + 1,
+                            "lines": lines
+                        })
+                    else:
+                        logger.warning(f"No text found on page {page_num + 1} of {file_path}.")
+                except Exception as e:
+                    logger.warning(f"Failed to extract text from page {page_num + 1} of {file_path}: {e}")
+    except Exception as e:
+        logger.error(f"Error reading PDF {file_path}: {e}", exc_info=True)
+        return []
     
     if not pages:
         return []

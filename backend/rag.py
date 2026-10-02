@@ -1,11 +1,14 @@
 import os
 import requests
 import time
+import logging
 from dotenv import load_dotenv
 from db import get_connection
 from embeddings import get_embedding, get_embeddings
 
 load_dotenv()
+
+logger = logging.getLogger(__name__)
 
 def store_chunks(filename: str, chunks: list[dict]) -> int:
     conn = get_connection()
@@ -31,7 +34,8 @@ def store_chunks(filename: str, chunks: list[dict]) -> int:
 
     conn.commit()
     cur.close()
-    conn.close()
+    from db import release_connection
+    release_connection(conn)
 
     return len(chunks)
 
@@ -56,7 +60,7 @@ def expand_query_multi(question: str, num_queries: int = 3) -> list[str]:
 
     api_base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
     url = f"{api_base}/v1/chat/completions"
-    model_name = os.getenv("LLM_MODEL", "llama3.1:8b")
+    model_name = os.getenv("LLM_MODEL", "llama3.2")
 
     for attempt in range(3):
         try:
@@ -78,12 +82,14 @@ def expand_query_multi(question: str, num_queries: int = 3) -> list[str]:
 
             if question not in queries:
                 queries.insert(0, question)
+            logger.info(f"Generated {len(queries)-1} expansion queries.")
             return queries[:num_queries + 1]
         except Exception as e:
-            print(f"Attempt {attempt+1}/3 failed during multi-query generation: {e}")
+            logger.error(f"Attempt {attempt+1}/3 failed during multi-query generation: {e}", exc_info=True)
             if attempt < 2:
                 time.sleep(2) 
             else:
+                logger.warning("All attempts for multi-query generation failed. Falling back to original question.")
                 return [question]
 
 
@@ -107,11 +113,12 @@ def retrieve_relevant_chunks(question: str, top_k: int = 7, use_rerank: bool = T
     try:
         query_embeddings = get_embeddings(queries)
     except Exception as e:
-        print(f"Error generating embeddings for queries: {e}")
+        logger.error(f"Error generating embeddings for queries: {e}", exc_info=True)
         try:
             query_embeddings = [get_embedding(question)]
             queries = [question]
-        except Exception:
+        except Exception as embed_e:
+            logger.error(f"Fallback embedding generation also failed: {embed_e}", exc_info=True)
             return []
 
     all_chunks = {}
@@ -141,7 +148,8 @@ def retrieve_relevant_chunks(question: str, top_k: int = 7, use_rerank: bool = T
                 }
 
     cur.close()
-    conn.close()
+    from db import release_connection
+    release_connection(conn)
 
     chunks = list(all_chunks.values())
 
@@ -157,10 +165,10 @@ def retrieve_relevant_chunks(question: str, top_k: int = 7, use_rerank: bool = T
             threshold = float(os.getenv("RERANK_THRESHOLD", "0.35"))
             filtered_chunks = [c for c in reranked_chunks if c["rerank_score"] >= threshold]
             
-            print(f"Reranked {len(reranked_chunks)} chunks; kept {len(filtered_chunks)} chunks matching threshold >= {threshold}")
+            logger.info(f"Reranked {len(reranked_chunks)} chunks; kept {len(filtered_chunks)} chunks matching threshold >= {threshold}")
             return filtered_chunks[:rerank_top_n]
         except Exception as e:
-            print(f"Reranking error: {e}")
+            logger.error(f"Reranking error: {e}", exc_info=True)
             return chunks[:top_k]
 
     chunks = sorted(chunks, key=lambda x: x["similarity"], reverse=True)
@@ -177,7 +185,8 @@ def answer_question(question: str, top_k: int = 7, relevant_chunks: list[dict] =
         cur.execute("SELECT COUNT(*) FROM document_chunks")
         count = cur.fetchone()[0]
         cur.close()
-        conn.close()
+        from db import release_connection
+        release_connection(conn)
         if count == 0:
             return "I don't have any documents to search through yet. Please upload a PDF first."
         return "I don't know based on the provided documents."
@@ -214,7 +223,7 @@ def answer_question(question: str, top_k: int = 7, relevant_chunks: list[dict] =
     api_base = os.getenv("OLLAMA_BASE_URL", "http://localhost:11434").rstrip("/")
     url = f"{api_base}/v1/chat/completions"
 
-    model_name = os.getenv("LLM_MODEL", "llama3.1:8b")
+    model_name = os.getenv("LLM_MODEL", "llama3.2")
     payload = {
         "model": model_name,
         "messages": [{"role": "user", "content": prompt}],
